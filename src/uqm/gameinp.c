@@ -431,7 +431,7 @@ ControlInputToBattleInput (const int *keyState, COUNT player, int direction)
 {
 	BATTLE_INPUT_STATE InputState = 0;
 
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(DIRECTIONAL_JOY)
 	InputState |= GetDirectionalJoystickInput(direction, player);
 #else
 	(void)player; /* satisfy compiler (unused parameter) */
@@ -548,7 +548,7 @@ TestSpeechSound (STRING snd)
 	PlaySpeechEffect ((SOUND)snd, NotPositional (), NULL, 0);
 }
 
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(DIRECTIONAL_JOY)
 // Fast arctan2, returns angle in radians as integer, with fractional part in lower 16 bits
 // Stolen from http://www.dspguru.com/dsp/tricks/fixed-point-atan2-with-self-normalization , precision is said to be 0.07 rads
 

@@ -226,7 +226,7 @@ static WIDGET *engine_widgets[] = {
 	(WIDGET *)(&choices[4]),    // Menu Style
 	(WIDGET *)(&choices[5]),    // Font Style
 	(WIDGET *)(&choices[11]),   // Cutscenes
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(NEVER)
 	(WIDGET *)(&choices[50]),   // Android: Melee Zoom
 #else
 	(WIDGET *)(&choices[13]),   // Melee Zoom
@@ -306,7 +306,7 @@ static WIDGET *keyconfig_widgets[] = {
 #endif
 	(WIDGET *)(&choices[18]),   // Bottom Player
 	(WIDGET *)(&choices[19]),   // Top Player
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(DIRECTIONAL_JOY)
 	(WIDGET *)(&choices[49]),   // Directional Joystick toggle
 #endif
 	(WIDGET *)(&labels[4]),     // Spacer
@@ -877,7 +877,6 @@ change_scaling (WIDGET_CHOICE *self, int *NewWidth, int *NewHeight)
 {
 	if (self->selected < 6)
 	{
-#if !(defined(ANDROID) || defined(__ANDROID__))
 		if (!self->selected)
 		{	// No blowup
 			*NewWidth = RES_SCALE (320);
@@ -888,18 +887,6 @@ change_scaling (WIDGET_CHOICE *self, int *NewWidth, int *NewHeight)
 			*NewWidth = 320 * (1 + self->selected);
 			*NewHeight = DOS_BOOL (240, 200) * (1 + self->selected);
 		}
-#else
-		if (!self->selected)
-		{	// No blowup
-			*NewWidth = RES_SCALE (320);
-			*NewHeight = RES_SCALE (240);
-		}
-		else
-		{
-			*NewWidth = 320 * (1 + self->selected);
-			*NewHeight = 240 * (1 + self->selected);
-		}
-#endif
 	}
 
 	PutIntOpt ((int *)(&loresBlowupScale), (int *)(&self->selected),
@@ -1136,9 +1123,7 @@ SetDefaults (void)
 	choices[10].selected = opts.fullscreen;
 	choices[11].selected = opts.intro;
 	choices[12].selected = opts.fps;
-#if !(defined(ANDROID) || defined(__ANDROID__))
 	choices[13].selected = opts.meleezoom;
-#endif
 	choices[14].selected = opts.stereo;
 	choices[15].selected = opts.adriver;
 	choices[16].selected = opts.aquality;
@@ -1174,8 +1159,10 @@ SetDefaults (void)
 	choices[46].selected = opts.spaceMusic;
 	choices[47].selected = opts.volasMusic;
 	choices[48].selected = opts.wholeFuel;
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(DIRECTIONAL_JOY)
 	choices[49].selected = opts.directionalJoystick;
+#endif
+#ifdef NEVER
 	choices[50].selected = opts.meleezoom;
 #endif
 	choices[51].selected = opts.landerHold;
@@ -1254,9 +1241,7 @@ PropagateResults (void)
 	opts.fullscreen = choices[10].selected;
 	opts.intro = choices[11].selected;
 	opts.fps = choices[12].selected;
-#if !(defined(ANDROID) || defined(__ANDROID__))
 	opts.meleezoom = choices[13].selected;
-#endif
 	opts.stereo = choices[14].selected;
 	opts.adriver = choices[15].selected;
 	opts.aquality = choices[16].selected;
@@ -1291,8 +1276,10 @@ PropagateResults (void)
 	opts.spaceMusic = choices[46].selected;
 	opts.volasMusic = choices[47].selected;
 	opts.wholeFuel = choices[48].selected;
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(DIRECTIONAL_JOY)
 	opts.directionalJoystick = choices[49].selected;
+#endif
+#ifdef NEVER
 	opts.meleezoom = choices[50].selected;
 #endif
 	opts.landerHold = choices[51].selected;
@@ -2362,7 +2349,7 @@ GetGlobalOptions (GLOBALOPTS *opts)
 	opts->scrTrans = is3DO (optScrTrans);
 	opts->intro = is3DO (optWhichIntro);
 	opts->skipIntro = optSkipIntro;	
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(NEVER)
 	optMScale = opts->meleezoom = optMeleeScale;
 #else
 	optMScale = opts->meleezoom =
@@ -2481,16 +2468,6 @@ SetGlobalOptions (GLOBALOPTS *opts)
 		SleepThreadUntil (FadeScreen (FadeAllToBlack, ONE_SECOND / 2));
 		resolutionFactor = resFactor;
 
-#if defined(ANDROID) || defined(__ANDROID__)
-		// Switch to native resolution on Res Factor change
-		ScreenWidthActual = 320 << RESOLUTION_FACTOR;
-		ScreenHeightActual = DOS_BOOL (240, 200) << RESOLUTION_FACTOR;
-		loresBlowupScale = (ScreenWidthActual / 320) - 1;
-		res_PutInteger("config.loresBlowupScale", loresBlowupScale);
-		res_PutInteger("config.reswidth", ScreenWidthActual);
-		res_PutInteger("config.resheight", ScreenHeightActual);
-#endif
-
 		switch (opts->windowType)
 		{
 			case OPTVAL_PC_WINDOW:
@@ -2524,25 +2501,6 @@ SetGlobalOptions (GLOBALOPTS *opts)
 			res_PutInteger("config.resheight", ScreenHeightActual);
 		}
 	}
-
-//#if !(defined(ANDROID) || defined(__ANDROID__))
-//	if (opts->fullscreen)
-//		NewGfxFlags |= TFB_GFXFLAGS_FULLSCREEN;
-//#endif
-//	if (IS_HD)
-//	{// Kruzen - adjust scalers for HD
-//		if (opts->scaler != OPTVAL_BILINEAR_SCALE)
-//			opts->scaler = OPTVAL_BILINEAR_SCALE;
-//
-//#if !(defined(ANDROID) || defined(__ANDROID__))
-//		if (!(NewGfxFlags & TFB_GFXFLAGS_FULLSCREEN) &&
-//			(opts->loresBlowup == NO_BLOWUP ||
-//				opts->loresBlowup == OPTVAL_SCALE_1280_960))
-//			opts->scaler = OPTVAL_NO_SCALE;
-//#endif
-//	}
-
-	//PutBoolOpt (&optKeepAspectRatio, &opts->keepaspect, "config.keepaspectratio", FALSE);
 
 	// Avoid setting gamma when it is not necessary
 	if (optGamma != 1.0f || sliderToGamma (opts->gamma) != 1.0f)
@@ -2644,7 +2602,7 @@ SetGlobalOptions (GLOBALOPTS *opts)
 	PutBoolOpt (&optSkipIntro, &opts->skipIntro, "mm.skipIntro", FALSE);
 	if (optMScale != (int)opts->meleezoom)
 	{
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(NEVER)
 		switch (opts->meleezoom) 
 		{
 			case TFB_SCALE_NEAREST:
@@ -2676,7 +2634,7 @@ SetGlobalOptions (GLOBALOPTS *opts)
 		TFB_UninitInput ();
 		TFB_InitInput (TFB_INPUTDRIVER_SDL, 0);
 	}
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(DIRECTIONAL_JOY)
 	PutBoolOpt (&optDirectionalJoystick, &opts->directionalJoystick, "mm.directionalJoystick", FALSE);
 #endif
 	PutIntOpt  (&optDateFormat, (int*)(&opts->dateType), "mm.dateFormat", FALSE);
